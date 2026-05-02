@@ -1,0 +1,10 @@
+date,product,revenue,quantity,region
+2024-01-01,Widget A,1200.50,12,North
+2024-01-02,Widget B,980.00,9,South
+2024-01-03,Widget C,2400.75,8,North
+2024-02-01,Widget A,1500.00,15,East
+2024-02-15,Widget B,3100.25,11,South
+2024-03-10,Widget C,890.50,7,North
+2024-03-22,Widget A,2800.00,10,West
+2024-04-05,Widget B,1750.00,14,South
+2024-04-22,Widget C,4200.00,18,North

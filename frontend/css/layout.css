@@ -1,0 +1,189 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.top-nav {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  background: var(--color-bg-card);
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  gap: var(--space-3);
+  z-index: 5;
+}
+
+.top-nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 320px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-accent);
+  letter-spacing: -0.01em;
+}
+
+.page-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.top-nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.global-search {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #F8F9FC;
+  font-size: 13px;
+  transition: all 150ms ease-out;
+}
+.global-search:focus {
+  border-color: var(--color-accent);
+  background: var(--color-bg-card);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Role badges with new colors */
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F8FAFC;
+  color: #475569;
+}
+.role-badge.admin { background: #F5F3FF; color: #6D28D9; }
+.role-badge.editor { background: #EFF6FF; color: #1D4ED8; }
+.role-badge.viewer { background: #F8FAFC; color: #475569; }
+
+/* Sidebar */
+.sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-text);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) 0;
+  overflow-y: auto;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-1);
+  flex: 1;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 12px 14px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--color-sidebar-text);
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+  transition: all 150ms ease-out;
+  border-left: 3px solid transparent;
+}
+.sidebar-link:hover {
+  color: var(--color-sidebar-active);
+  background: rgba(255,255,255,0.05);
+}
+.sidebar-link.active {
+  color: var(--color-sidebar-active);
+  background: rgba(255,255,255,0.08);
+  border-left-color: var(--color-accent);
+}
+
+.sidebar-icon {
+  font-size: 16px;
+  line-height: 1;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-footer {
+  padding: var(--space-2);
+  font-size: 10px;
+  color: #475569;
+  opacity: 0.7;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Collapsed sidebar tooltip */
+.sidebar-link[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #0F172A;
+  color: white;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+  z-index: 100;
+}
+@media (max-width: 900px) {
+  .sidebar-link:hover[data-tooltip]::after { opacity: 1; }
+}
+
+.main-content {
+  grid-row: 2;
+  grid-column: 2;
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: #F1F5F9;
+}

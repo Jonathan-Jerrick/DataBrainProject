@@ -79,9 +79,8 @@
 .qb-step.active { color: var(--color-accent); }
 .qb-step.active .qb-step-num { background: var(--color-accent); color: white; }
 .qb-step.complete { color: var(--color-success); }
-.qb-step.complete .qb-step-num { background: var(--color-success); color: white; }
-.qb-step.complete .qb-step-num::before { content: "✓"; }
-.qb-step.complete .qb-step-num span { display: none; }
+.qb-step.complete .qb-step-num { background: var(--color-success); color: white; font-size: 0; }
+.qb-step.complete .qb-step-num::before { content: "✓"; font-size: 12px; }
 .qb-step-arrow { color: var(--color-text-muted); }
 
 /* Body */

@@ -102,7 +102,7 @@ async function loadProfile(id) {
   }
 }
 
-export function closeQueryBuilder() {
+function closeQueryBuilder() {
   if (!panelEl) return;
   panelEl.classList.remove('open');
   backdropEl.classList.remove('open');

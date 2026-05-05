@@ -118,11 +118,11 @@ CREATE TABLE IF NOT EXISTS dashboard_access (
 """
 
 SEED_USERS = [
-    ("user_sarah", "Sarah Chen", "sarah@insightboard.io", "admin", "#7C3AED", "SC"),
-    ("user_marcus", "Marcus Webb", "marcus@insightboard.io", "editor", "#2563EB", "MW"),
-    ("user_priya", "Priya Nair", "priya@insightboard.io", "editor", "#059669", "PN"),
-    ("user_james", "James Okafor", "james@insightboard.io", "viewer", "#D97706", "JO"),
-    ("user_lisa", "Lisa Park", "lisa@insightboard.io", "viewer", "#DC2626", "LP"),
+    ("user_1", "User 1", "user1@insightboard.io", "admin", "#7C3AED", "U1"),
+    ("user_2", "User 2", "user2@insightboard.io", "editor", "#2563EB", "U2"),
+    ("user_3", "User 3", "user3@insightboard.io", "editor", "#059669", "U3"),
+    ("user_4", "User 4", "user4@insightboard.io", "viewer", "#D97706", "U4"),
+    ("user_5", "User 5", "user5@insightboard.io", "viewer", "#DC2626", "U5"),
 ]
 
 
@@ -153,7 +153,7 @@ async def init_db():
         if count == 0:
             await db.execute(
                 "INSERT INTO dashboards (id, name, created_by, is_default, visibility) VALUES (?, ?, ?, ?, ?)",
-                ("dash_default", "Main Dashboard", "user_sarah", True, "workspace"),
+                ("dash_default", "Main Dashboard", "user_1", True, "workspace"),
             )
             await db.commit()
 

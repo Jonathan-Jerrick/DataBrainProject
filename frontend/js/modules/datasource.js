@@ -1,4 +1,4 @@
-import { api, ApiError } from '../utils/api.js';
+import { api } from '../utils/api.js';
 import { store } from '../utils/state.js';
 import { showToast } from '../utils/toast.js';
 import { can, applyPermissions } from './permissions.js';

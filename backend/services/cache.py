@@ -1,7 +1,13 @@
+"""Tiny in-memory query cache.
+
+Keyed by an MD5 hash of the canonicalized query spec. Each entry remembers
+which datasource it came from so we can invalidate everything tied to a
+dataset that just got deleted.
+"""
 import hashlib
 import json
 import time
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 
 class QueryCache:
@@ -9,36 +15,28 @@ class QueryCache:
         self._cache: Dict[str, dict] = {}
         self.ttl = ttl_seconds
 
-    def _make_key(self, query_spec_dict: dict) -> str:
-        serialized = json.dumps(query_spec_dict, sort_keys=True, default=str)
-        return hashlib.md5(serialized.encode()).hexdigest()
+    def _key(self, spec: dict) -> str:
+        return hashlib.md5(json.dumps(spec, sort_keys=True, default=str).encode()).hexdigest()
 
-    def get(self, query_spec_dict: dict) -> Optional[Any]:
-        key = self._make_key(query_spec_dict)
-        if key in self._cache:
-            entry = self._cache[key]
-            if time.time() - entry["timestamp"] < self.ttl:
-                return entry["data"]
-            del self._cache[key]
-        return None
+    def get(self, spec: dict) -> Optional[Any]:
+        entry = self._cache.get(self._key(spec))
+        if not entry:
+            return None
+        if time.time() - entry["timestamp"] >= self.ttl:
+            del self._cache[self._key(spec)]
+            return None
+        return entry["data"]
 
-    def set(self, query_spec_dict: dict, data: Any, datasource_id: str = None):
-        key = self._make_key(query_spec_dict)
-        self._cache[key] = {
+    def set(self, spec: dict, data: Any, datasource_id: Optional[str] = None) -> None:
+        self._cache[self._key(spec)] = {
             "data": data,
             "timestamp": time.time(),
-            "datasource_id": datasource_id or query_spec_dict.get("datasource_id"),
+            "datasource_id": datasource_id or spec.get("datasource_id"),
         }
 
-    def invalidate_datasource(self, datasource_id: str):
-        keys_to_delete = [
-            k for k, v in self._cache.items() if v.get("datasource_id") == datasource_id
-        ]
-        for k in keys_to_delete:
+    def invalidate_datasource(self, datasource_id: str) -> None:
+        for k in [k for k, v in self._cache.items() if v.get("datasource_id") == datasource_id]:
             del self._cache[k]
-
-    def clear(self):
-        self._cache.clear()
 
 
 query_cache = QueryCache()

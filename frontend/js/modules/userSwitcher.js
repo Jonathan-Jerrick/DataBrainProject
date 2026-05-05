@@ -9,7 +9,7 @@ export async function initUserSwitcher() {
   store.set('users', users);
 
   // Default to admin user
-  const defaultUser = users.find(u => u.id === 'user_sarah') || users[0];
+  const defaultUser = users.find(u => u.id === 'user_1') || users[0];
   store.set('activeUser', defaultUser);
 
   renderSwitcher();

@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
 import json
 
+from fastapi import APIRouter, Depends, HTTPException
+
 from ..database import get_db, write_audit_log
-from ..services.auth import get_current_user, require_permission
 from ..models.schemas import UserRoleUpdate
+from ..services.auth import get_current_user, require_permission
 
 router = APIRouter(prefix="/api", tags=["users"])
 

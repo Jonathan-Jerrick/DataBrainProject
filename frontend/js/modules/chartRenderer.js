@@ -2,7 +2,6 @@ import { api } from '../utils/api.js';
 import { showToast } from '../utils/toast.js';
 
 const PALETTE = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'];
-const CARD_BORDER_PALETTE = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
 
 // Set Chart.js defaults
 if (window.Chart) {
@@ -21,10 +20,10 @@ if (window.Chart) {
 }
 
 export function getChartBorderColor(index) {
-  return CARD_BORDER_PALETTE[index % CARD_BORDER_PALETTE.length];
+  return PALETTE[index % PALETTE.length];
 }
 
-export function formatAxisTick(value) {
+function formatAxisTick(value) {
   if (value == null) return '';
   const abs = Math.abs(value);
   if (abs >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';

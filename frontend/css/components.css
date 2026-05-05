@@ -133,6 +133,17 @@
 .toast.warning { border-left-color: var(--color-warning); }
 .toast.info { border-left-color: var(--color-info); }
 .toast-message { font-size: 13px; }
+.toast { display: flex; align-items: center; gap: 12px; }
+.toast-message { flex: 1; }
+.toast-action {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.toast-action:hover { background: var(--color-accent-soft); }
 .toast-progress {
   position: absolute;
   bottom: 0; left: 0;

@@ -1,40 +1,32 @@
+// Tiny fetch wrapper. Reads the active user from the store and attaches
+// the X-User-Id header. Throws Error(message) with the backend's `detail`
+// string on non-2xx responses.
 import { store } from './state.js';
 
 const BASE_URL = '/api';
 
-export class ApiError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
-
-function userId() {
-  const u = store.get('activeUser');
-  return u ? u.id : null;
-}
-
 async function request(method, path, body = null, isForm = false) {
   const headers = {};
-  const uid = userId();
-  if (uid) headers['X-User-Id'] = uid;
+  const u = store.get('activeUser');
+  if (u) headers['X-User-Id'] = u.id;
 
-  const options = { method, headers };
-  if (body && !isForm) {
+  const opts = { method, headers };
+  if (body && isForm) {
+    opts.body = body;
+  } else if (body) {
     headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(body);
-  } else if (body && isForm) {
-    options.body = body;
+    opts.body = JSON.stringify(body);
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, options);
+  const res = await fetch(`${BASE_URL}${path}`, opts);
   if (!res.ok) {
     let detail = 'Request failed';
     try { const j = await res.json(); detail = j.detail || detail; } catch {}
-    throw new ApiError(res.status, detail);
+    const err = new Error(detail);
+    err.status = res.status;
+    throw err;
   }
-  if (res.status === 204) return null;
-  return res.json();
+  return res.status === 204 ? null : res.json();
 }
 
 export const api = {

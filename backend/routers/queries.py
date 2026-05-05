@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
 import json
 import uuid
 
+from fastapi import APIRouter, Depends
+
 from ..database import get_db, write_audit_log
-from ..services.auth import get_current_user, require_permission
-from ..services import csv_engine
-from ..services.cache import query_cache
 from ..models.schemas import QuerySpec, QueryTemplateCreate
+from ..services import csv_engine
+from ..services.auth import get_current_user, require_permission
+from ..services.cache import query_cache
 
 router = APIRouter(prefix="/api", tags=["queries"])
 

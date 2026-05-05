@@ -57,7 +57,7 @@ async function renderDashboard(container, dashboards, activeId) {
     <div class="dashboard-page">
       <div class="dashboard-welcome">
         <div>
-          <div class="welcome-title">${greeting()}, ${user ? escapeHtml(user.name.split(' ')[0]) : 'there'} 👋</div>
+          <div class="welcome-title">${greeting()}, ${user ? escapeHtml(user.name) : 'there'} 👋</div>
           <div class="welcome-sub">
             ${escapeHtml(active.name)} · <strong>${charts.length}</strong> chart${charts.length === 1 ? '' : 's'}
             ${primaryDs ? ` · ${escapeHtml(primaryDs.name)}` : ''}
@@ -219,14 +219,12 @@ function renderChartArea(charts, dashboardId, primaryDs) {
         <p>Create your first chart using the Query Builder to start visualizing your data.</p>
         <div class="empty-actions">
           ${can('create_chart') ? '<button class="btn btn-primary" id="empty-new-chart">+ New Chart</button>' : ''}
-          ${can('create_chart') && primaryDs ? '<button class="btn btn-secondary" id="empty-sample">Try Sample Charts</button>' : ''}
         </div>
       </div>`;
     document.getElementById('empty-new-chart')?.addEventListener('click', () => {
       if (!primaryDs) { showToast('Upload a dataset first', 'warning'); window.location.hash = '#datasets'; return; }
       openQueryBuilder({ dashboardId });
     });
-    document.getElementById('empty-sample')?.addEventListener('click', () => createSampleCharts(dashboardId, primaryDs));
     return;
   }
 
@@ -234,85 +232,6 @@ function renderChartArea(charts, dashboardId, primaryDs) {
   const grid = document.getElementById('chart-grid');
   charts.forEach((chart, i) => grid.appendChild(buildChartCard(chart, i)));
   applyPermissions(host);
-}
-
-async function createSampleCharts(dashboardId, primaryDs) {
-  if (!primaryDs) { showToast('No dataset available', 'warning'); return; }
-  let profile;
-  try { profile = await api.get(`/datasources/${primaryDs.id}/profile`); }
-  catch (e) { showToast(e.message, 'error'); return; }
-
-  const cols = profile.columns || [];
-  const numericMetrics = cols.filter(c => c.column_type === 'numeric' && (c.user_overridden_role || c.inferred_role) === 'metric');
-  const dateCols = cols.filter(c => c.column_type === 'date');
-  const stringCols = cols.filter(c => c.column_type === 'string');
-
-  if (!numericMetrics.length || (!stringCols.length && !dateCols.length)) {
-    showToast('Sample charts need a numeric metric and a dimension', 'warning');
-    return;
-  }
-
-  const m = numericMetrics[0];
-  const sample = [];
-
-  if (stringCols.length) {
-    sample.push({
-      title: `${titleCase(m.column)} by ${titleCase(stringCols[0].column)}`,
-      chart_type: 'bar',
-      query_spec: {
-        datasource_id: primaryDs.id,
-        dimensions: [{ column: stringCols[0].column, alias: stringCols[0].column }],
-        metrics: [{ column: m.column, aggregation: 'SUM', alias: `sum_${m.column}` }],
-        filters: [], limit: 50,
-      },
-    });
-  }
-
-  if (dateCols.length) {
-    sample.push({
-      title: `${titleCase(m.column)} Over Time`,
-      chart_type: 'line',
-      query_spec: {
-        datasource_id: primaryDs.id,
-        dimensions: [{ column: dateCols[0].column, alias: dateCols[0].column }],
-        metrics: [{ column: m.column, aggregation: 'SUM', alias: `sum_${m.column}` }],
-        filters: [], limit: 200,
-      },
-    });
-  }
-
-  if (stringCols.length > 1) {
-    sample.push({
-      title: `${titleCase(m.column)} by ${titleCase(stringCols[1].column)}`,
-      chart_type: 'donut',
-      query_spec: {
-        datasource_id: primaryDs.id,
-        dimensions: [{ column: stringCols[1].column, alias: stringCols[1].column }],
-        metrics: [{ column: m.column, aggregation: 'SUM', alias: `sum_${m.column}` }],
-        filters: [], limit: 8,
-      },
-    });
-  }
-
-  showToast('Creating sample charts…', 'info', 2000);
-  for (const c of sample) {
-    try {
-      await api.post('/charts', {
-        title: c.title,
-        dashboard_id: dashboardId,
-        datasource_id: primaryDs.id,
-        query_spec: c.query_spec,
-        chart_type: c.chart_type,
-        visual_config: {},
-        width: c.chart_type === 'line' ? 12 : 6,
-        height: 4, position_x: 0, position_y: 0,
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  showToast('Sample charts added', 'success');
-  window.dispatchEvent(new CustomEvent('chartsChanged'));
 }
 
 function buildChartCard(chart, index) {
@@ -430,9 +349,34 @@ function buildChartCard(chart, index) {
     else showToast('No data loaded', 'warning');
   });
   card.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
-    if (!confirm(`Delete chart "${chart.title}"?`)) return;
-    try { await api.del(`/charts/${chart.id}`); showToast('Deleted', 'success'); window.dispatchEvent(new CustomEvent('chartsChanged')); }
-    catch (e) { showToast(e.message, 'error'); }
+    try {
+      await api.del(`/charts/${chart.id}`);
+      // Capture full snapshot so the user can undo
+      const snapshot = {
+        title: chart.title,
+        dashboard_id: chart.dashboard_id,
+        datasource_id: chart.datasource_id,
+        query_spec: chart.query_spec,
+        chart_type: chart.chart_type,
+        visual_config: chart.visual_config || {},
+        width: chart.width || 6, height: chart.height || 4,
+        position_x: chart.position_x || 0, position_y: chart.position_y || 0,
+      };
+      showToast(`Deleted "${chart.title}"`, 'success', {
+        duration: 6000,
+        action: {
+          label: 'Undo',
+          onClick: async () => {
+            try {
+              await api.post('/charts', snapshot);
+              showToast('Restored', 'success');
+              window.dispatchEvent(new CustomEvent('chartsChanged'));
+            } catch (e) { showToast(`Restore failed: ${e.message}`, 'error'); }
+          },
+        },
+      });
+      window.dispatchEvent(new CustomEvent('chartsChanged'));
+    } catch (e) { showToast(e.message, 'error'); }
   });
 
   if (editable && !broken) {

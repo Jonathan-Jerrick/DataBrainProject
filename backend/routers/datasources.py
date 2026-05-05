@@ -1,24 +1,20 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
-import uuid
 import json
 import os
-import asyncio
+import uuid
 from pathlib import Path
 
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+
 from ..database import get_db, write_audit_log
-from ..services.auth import get_current_user, require_permission
-from ..services import csv_engine
-from ..services.cache import query_cache
 from ..models.schemas import ColumnRoleUpdate
+from ..services import csv_engine
+from ..services.auth import get_current_user, require_permission
+from ..services.cache import query_cache
 
 router = APIRouter(prefix="/api/datasources", tags=["datasources"])
 
 UPLOADS_DIR = Path(__file__).parent.parent / "data" / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-
-# in-memory progress channels for SSE
-_progress_channels: dict = {}
 
 
 @router.post("/upload")
@@ -105,28 +101,6 @@ async def upload_datasource(
         "suggested_explorations": suggestions,
         "date_range": date_range,
     }
-
-
-@router.get("/upload/progress/{job_id}")
-async def upload_progress(job_id: str):
-    """Stub SSE endpoint that emits a synthetic stage progression. The actual
-    upload is synchronous; this provides UX progress feedback."""
-
-    async def event_stream():
-        stages = [
-            ("receiving", 10, "Receiving file..."),
-            ("parsing", 30, "Parsing CSV..."),
-            ("detecting_types", 50, "Detecting column types..."),
-            ("profiling", 75, "Profiling columns..."),
-            ("generating_suggestions", 90, "Generating suggestions..."),
-            ("complete", 100, "Done"),
-        ]
-        for stage, progress, message in stages:
-            payload = json.dumps({"stage": stage, "progress": progress, "message": message})
-            yield f"data: {payload}\n\n"
-            await asyncio.sleep(0.25)
-
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.get("")

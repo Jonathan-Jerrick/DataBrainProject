@@ -1,66 +1,45 @@
+// Role -> permission mapping. Mirrors backend/services/permissions.py — keep
+// both in sync. Used to gate UI elements on the active user's role.
 import { store } from '../utils/state.js';
 
 const PERMISSIONS = {
   admin: new Set([
-    'upload_dataset', 'delete_dataset', 'archive_dataset', 'rename_dataset',
-    'edit_dataset', 'view_column_profiles', 'create_dashboard',
-    'delete_any_dashboard', 'lock_dashboard', 'set_dashboard_visibility',
-    'set_default_dashboard', 'create_chart', 'edit_any_chart',
-    'delete_any_chart', 'move_chart', 'duplicate_any_chart',
-    'reassign_chart_ownership', 'manage_users', 'view_audit_log',
-    'workspace_settings', 'save_query_template', 'export_chart',
-    'apply_filters', 'save_filters', 'view_dashboards', 'view_datasets',
-    'revoke_dashboard_access', 'change_user_role', 'fullscreen_chart',
+    'upload_dataset', 'delete_dataset', 'rename_dataset', 'edit_dataset',
+    'create_dashboard', 'create_chart', 'duplicate_any_chart',
+    'save_query_template', 'export_chart', 'apply_filters',
+    'manage_users', 'view_audit_log', 'change_user_role',
   ]),
   editor: new Set([
-    'edit_dataset', 'view_column_profiles', 'bookmark_dataset',
-    'create_dashboard', 'delete_own_dashboard', 'duplicate_dashboard',
-    'create_chart', 'edit_own_chart', 'delete_own_chart',
-    'duplicate_any_chart', 'comment_on_chart', 'move_chart',
-    'save_query_template', 'export_chart', 'apply_filters',
-    'save_filters', 'view_dashboards', 'view_datasets', 'fullscreen_chart',
+    'edit_dataset', 'create_dashboard', 'create_chart',
+    'duplicate_any_chart', 'save_query_template',
+    'export_chart', 'apply_filters',
   ]),
   viewer: new Set([
-    'export_chart', 'apply_temp_filters', 'view_dashboards',
-    'view_dataset_names', 'fullscreen_chart',
+    'export_chart', 'apply_temp_filters',
   ]),
 };
 
 export function can(permission) {
   const u = store.get('activeUser');
-  if (!u) return false;
-  return PERMISSIONS[u.role]?.has(permission) || false;
+  return !!u && PERMISSIONS[u.role]?.has(permission);
+}
+
+function isOwner(resource) {
+  const u = store.get('activeUser');
+  return !!u && resource && resource.created_by === u.id;
 }
 
 export function canEditChart(chart) {
   const u = store.get('activeUser');
   if (!u || !chart) return false;
-  if (u.role === 'admin') return true;
-  if (u.role === 'editor' && chart.created_by === u.id) return true;
-  return false;
+  return u.role === 'admin' || (u.role === 'editor' && isOwner(chart));
 }
 
-export function canDeleteChart(chart) {
-  return canEditChart(chart);
-}
-
-export function canEditDashboard(dashboard) {
-  const u = store.get('activeUser');
-  if (!u || !dashboard) return false;
-  if (u.role === 'admin') return true;
-  if (u.role === 'editor' && dashboard.created_by === u.id) return true;
-  return false;
-}
-
+// Removes elements that the current user cannot access, based on a
+// `data-requires-permission="<perm>"` attribute. Call after every render.
 export function applyPermissions(rootEl) {
   if (!rootEl) return;
   rootEl.querySelectorAll('[data-requires-permission]').forEach(el => {
-    const perm = el.dataset.requiresPermission;
-    if (!can(perm)) el.remove();
-  });
-  rootEl.querySelectorAll('[data-requires-edit-chart]').forEach(el => {
-    const chartId = el.dataset.requiresEditChart;
-    const chart = (window._charts || []).find(c => c.id === chartId);
-    if (!canEditChart(chart)) el.remove();
+    if (!can(el.dataset.requiresPermission)) el.remove();
   });
 }

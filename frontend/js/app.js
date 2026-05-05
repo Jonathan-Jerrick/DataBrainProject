@@ -19,6 +19,9 @@ async function route() {
   const { route, params } = parseHash();
   setActiveSidebar(route);
 
+  // Reset background class on every route
+  main().classList.remove('dashboard-bg');
+
   switch (route) {
     case 'dashboard':
     case '':
@@ -59,14 +62,6 @@ function setActiveSidebar(route) {
 
 window.addEventListener('hashchange', route);
 window.addEventListener('userSwitched', () => route());
-
-// Global search (basic — filters charts/datasets in store)
-document.getElementById('global-search')?.addEventListener('input', (e) => {
-  const q = e.target.value.trim();
-  if (q.length === 0) return;
-  // Keyboard signal only — actual filtering would need re-render. Light feedback:
-  // (Out of scope for this iteration to fully wire, but intent is captured.)
-});
 
 (async function init() {
   try {

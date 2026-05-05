@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional, Any, Union, Dict
 
 
@@ -60,36 +60,6 @@ class ColumnProfile(BaseModel):
     histogram_data: Optional[List[Dict[str, Any]]] = None
 
 
-class DatasourceMeta(BaseModel):
-    id: str
-    name: str
-    filename: str
-    row_count: int
-    column_count: int
-    file_size_bytes: int
-    status: str
-    uploaded_by: str
-    uploaded_at: str
-    health_status: str
-
-
-class DatasourceProfile(BaseModel):
-    id: str
-    name: str
-    filename: str
-    row_count: int
-    column_count: int
-    file_size_bytes: int
-    status: str
-    uploaded_by: str
-    uploaded_at: str
-    columns: List[ColumnProfile]
-    health_status: str
-    health_issues: List[str]
-    suggested_explorations: List[Dict[str, Any]]
-    date_range: Optional[Dict[str, Any]] = None
-
-
 class ChartCreate(BaseModel):
     title: str
     dashboard_id: str
@@ -139,12 +109,3 @@ class QueryTemplateCreate(BaseModel):
     name: str
     datasource_id: str
     query_spec: QuerySpec
-
-
-class User(BaseModel):
-    id: str
-    name: str
-    email: str
-    role: str
-    avatar_color: str
-    avatar_initials: str

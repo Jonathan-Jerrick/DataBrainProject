@@ -1,15 +1,20 @@
-import pandas as pd
-import numpy as np
 import time
-import os
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 from fastapi import HTTPException
 
 from ..models.schemas import (
-    QuerySpec, QueryResult, ColumnProfile, FilterCondition,
-    DimensionSpec, MetricSpec,
+    ColumnProfile, DimensionSpec, FilterCondition, MetricSpec,
+    QueryResult, QuerySpec,
 )
+
+# Pandas emits noisy warnings on mixed-format date parsing; we handle parse
+# failures explicitly via errors="coerce", so silence the warning.
+warnings.filterwarnings("ignore", category=UserWarning, module="pandas")
 
 UPLOADS_DIR = Path(__file__).parent.parent / "data" / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
